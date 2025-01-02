@@ -1,0 +1,24 @@
+{
+	"name": "spoon_funding",
+	"name:ko": "소피아 펀딩기능",
+	"version": "0.0.3",
+	"description": "Manage the Funding ",
+	"description:ko": "후원의 펀딩금을 관리합니다.",
+	"release-note": {
+		"0.0.1": "기본 펀딩 기능이 추가되었습니다.",
+        "0.0.2": "펀딩 기능 on, off / 채팅수 / 초기화 기능이 추가되었습니다.",
+        "0.0.3": "펀딩 기능 on, off의 자동멘트 기능이 업데이트 되었습니다.",
+		"0.0.4": "펀딩 기본값이 off로 변경되었습니다."
+    },
+	"sopia": {
+		"ignore:fetch": [
+			"config.cfg",
+			"config.bak"
+		],
+		"ignore:upload": [
+			"data",
+			"config.cfg",
+			"config.bak"
+		]
+	}
+}
