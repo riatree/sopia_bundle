@@ -1,0 +1,22 @@
+{
+	"name": "spoon_visit",
+	"name:ko": "소피아 방문자 인사멘트 관리",
+	"version": "0.0.2",
+	"description": "Manage the Personnel Reaction",
+	"description:ko": "유저의 방문 인사멘트를 관리합니다.",
+	"page": "page.vue",
+	"release-note": {
+		"0.0.1" :""
+	},
+	"sopia": {
+		"ignore:fetch": [
+			"config.cfg",
+			"config.bak"
+		],
+		"ignore:upload": [
+			"data",
+			"config.cfg",
+			"config.bak"
+		]
+	}
+}
