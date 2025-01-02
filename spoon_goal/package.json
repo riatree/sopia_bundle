@@ -1,0 +1,22 @@
+{
+	"name": "spoon_goal",
+	"name:ko": "소피아 후원 목표",
+	"version": "0.0.2",
+	"description": "Target Amount",
+	"description:ko": "스푼 후원의 목표스푼을 관리합니다.",
+	"release-note": {
+		"0.0.1": "목표스푼 후원 관리 시스템이 추가되었습니다.",
+        "0.0.2": "후원금의 자리수에 따라 발생하는 오류가 수정되었습니다."
+    },
+	"sopia": {
+		"ignore:fetch": [
+			"config.cfg",
+			"config.bak"
+		],
+		"ignore:upload": [
+			"data",
+			"config.cfg",
+			"config.bak"
+		]
+	}
+}
