@@ -14,6 +14,8 @@ let target_price = 1000;
 let price = 0;
 let chatting_count = 80;
 let dj_tag = '';
+let flag = true;
+let point = 2000;
 
 exports.live_message = async (evt, sock) => {
     const message = evt.update_component.message.value;
@@ -34,8 +36,16 @@ exports.live_message = async (evt, sock) => {
 
 // User Donation
 exports.live_present = (evt, sock) => {
-    const num = evt.data.amount * evt.data.combo;
-    price = parseInt(price) + parseInt(num);
+	const num = evt.data.amount * evt.data.combo;
+    price += parseInt(num);
+    
+    if (price >= target_price && flag) {
+        let tag = evt.data.author.tag;
+        sock.message(`!상점 ${tag} ${point}`);
+        flag = false;
+    }
+
+
 } // live_present() end
 
 function _getSpoonCommand(msg, sock, evt) {
@@ -48,8 +58,12 @@ function _getSpoonCommand(msg, sock, evt) {
 
     switch(cmd[0]) {
         case '!목표명' : {
-            if (!evt.data.user.is_dj && !sock._live.manager_ids.includes(evt.data.user.id) && tag != 'hati_manager') {
+            if (!evt.data.user.is_dj && !sock._live.manager_ids.includes(evt.data.user.id) && tag != 'hati_manager' && tag != 'ria_tree') {
                 return;
+            }
+
+            if (cmd[1] != undefined) {
+                user_data.title = cmd[1];
             }
             if (cmd[2] != undefined) {
                 user_data.title = cmd[1] + ' ' + cmd[2];
@@ -63,21 +77,25 @@ function _getSpoonCommand(msg, sock, evt) {
             if (cmd[5] != undefined) { 
                 user_data.title = cmd[1] + ' ' + cmd[2] + ' ' + cmd[3] + ' ' + cmd[4] + ' ' + cmd[5];
             }
-           sock.message(`이름이 변경되었습니다.`);
+            save_gaol_data(dj_tag);
+           	sock.message(`${user_data.title} ( ${price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} / ${target_price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} )`); 
         } break;
         case '!목표스푼' : {
             if (!evt.data.user.is_dj && !sock._live.manager_ids.includes(evt.data.user.id) && tag != 'hati_manager') {
                 return;
             }
+			if (isNaN(cmd[1])) { sock.message(`숫자만 입력해주세요`); return;}
             target_price = cmd[1];
-            sock.message(`스푼목표금액이 변경되었습니다.`);
+            flag = true;
+            sock.message(`${user_data.title} ( ${price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} / ${target_price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} )`); 
         } break;
         case '!현재스푼' : {
             if (!evt.data.user.is_dj && !sock._live.manager_ids.includes(evt.data.user.id) && tag != 'hati_manager' ) {
                 return;
             }
+			if (isNaN(cmd[1])) { sock.message(`숫자만 입력해주세요`); return;}
             price = cmd[1];
-            sock.message(`스푼금액이 변경되었습니다.`);
+            sock.message(`${user_data.title} ( ${price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} / ${target_price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} )`); 
         } break;
         case '!스푼' : {
             sock.message(`${user_data.title} ( ${price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} / ${target_price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} )`); 
@@ -86,9 +104,15 @@ function _getSpoonCommand(msg, sock, evt) {
             if (!evt.data.user.is_dj && tag != 'hati_manager') {
                 return;
             }
+			if (isNaN(cmd[1])) { sock.message(`숫자만 입력해주세요`); return;}
             chatting_count = parseInt(cmd[1]);
             sock.message(`채팅수가 ${cmd[1]}회로 변경되었습니다.`);
         } break;
+        case '!달성점수' : {
+            if (isNaN(cmd[1])) { sock.message(`숫자만 입력해주세요`); return;}
+            point = cmd[1];
+            sock.message(`달성점수가 ${cmd[1]}회로 변경되었습니다.`);
+        }
         
     }
 } // _getSpoonCommand() end
@@ -130,7 +154,7 @@ function load_goal_data(file_name) {
             "goal_info": [
                 {
                     title : "♥️••𝙎𝙥𝙤𝙤𝙣 달성까지",
-                    tag : "soft.i"
+                    tag : file_name
                 }
             ]
         }
