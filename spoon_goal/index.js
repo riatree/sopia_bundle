@@ -57,7 +57,10 @@ exports.live_present = (evt, sock) => {
         flag = false;
 
         if (onoff) {
-            user_data.target_price = parseInt(user_data.target_price) + parseInt(1000);
+            let num = 10;
+            let length = price.toString().length -1;
+            let firstnum = price.toString().substr(0,1);
+            user_data.target_price = firstnum * (num ** length) + (num ** length);
         }        
     }
 
@@ -145,6 +148,16 @@ function _getSpoonCommand(msg, sock, evt) {
             user_data.ticket = parseInt(cmd[1]);
             save_gaol_data(dj_tag);
             sock.message(`달성복권이 ${cmd[1]}개로 변경되었습니다.`);
+        } break;
+        case '!증가' : {
+            price += 300;
+
+            if (price >= user_data.target_price) {
+                let num = 10;
+                let length = price.toString().length -1;
+                let firstnum = price.toString().substr(0,1);
+                user_data.target_price = firstnum * (num ** length) + (num ** length);
+            }
         } break;
     }
 } // _getSpoonCommand() end
