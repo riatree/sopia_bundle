@@ -12,10 +12,8 @@ let price = 0;
 let chatting_count = 80;
 let dj_tag = '';
 let flag = true;
-let point = 2000;
 let goal_count = 1;
-let ticket = 2;
-let onoff = false;
+let onoff = true;
 
 exports.live_message = async (evt, sock) => {
     const message = evt.update_component.message.value;
@@ -27,14 +25,13 @@ exports.live_message = async (evt, sock) => {
     var user_data = jsonData.goal_info.find(x => x.tag === dj_tag);
     
     if (user_data == undefined) return;
-
-    ticket = user_data.ticket;
-    point = user_date.point;
-
+    
     if (chat_cnt === chatting_count) {
-        sock.message(`${user_data.title} ( ${price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} / ${target_price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} )`); 
+        sock.message(`${user_data.title}\\n( ${price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} / ${user_data.target_price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} )`); 
         chat_cnt = -1;
     }
+
+    
 } // live_message() end
 
 // User Donation
@@ -42,28 +39,26 @@ exports.live_present = (evt, sock) => {
 	const num = evt.data.amount * evt.data.combo;
     price += parseInt(num);
     
-    if (price >= target_price && flag) {
+    load_goal_data(dj_tag);
+    var user_data = jsonData.goal_info.find(x => x.tag === dj_tag);
 
+    if (user_data == undefined) return;
+
+    if (price >= target_price && flag) {
         let tag = evt.data.author.tag;
         if (goal_count % 2 != 0) {
-            sock.message(`!상점 ${tag} ${point}`);
-            goal_count++;
+            sock.message(`!상점 ${tag} ${user_data.point}`);
+            goal_count = 1;    
         } else {
-            sock.message(`!복권지급 ${tag} ${ticket}`);
-            goal_count = 1;
+            sock.message(`!복권지급 ${tag} ${user_data.ticket}`);
+            goal_count = 0;
         }
-        
+        goal_count++;
         flag = false;
 
-        if (onoff == true) {
-            let count = 1;
-            for (var i = 1; price.toString().length; i++) {
-                count = count * 10;
-            }
-            
-            target_price = parseInt((Math.floor(price / count) + 1)) * parseInt(count);
-        }
-
+        if (onoff) {
+            user_data.target_price = parseInt(user_data.target_price) + parseInt(1000);
+        }        
     }
 
 
@@ -82,13 +77,15 @@ function _getSpoonCommand(msg, sock, evt) {
             if (!evt.data.user.is_dj && !sock._live.manager_ids.includes(evt.data.user.id) && tag != 'hati_manager' && tag != 'ria_tree') {
                 return;
             }
-
+            let title = ``;
             cmd.forEach(ward => {
-                user_data.title = ward + ' ';
+                if (ward == "!목표명") ward = '';
+                title = title +  ' ' + ward;
+                user_data.title = title ;
             });
 
             save_gaol_data(dj_tag);
-           	sock.message(`${user_data.title}\\n ( ${price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} / ${target_price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} )`); 
+           	sock.message(`${user_data.title}\\n( ${price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} / ${user_data.target_price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} )`); 
         } break;
         case '!목표스푼' : {
             if (!evt.data.user.is_dj && !sock._live.manager_ids.includes(evt.data.user.id) && tag != 'hati_manager') {
@@ -97,16 +94,19 @@ function _getSpoonCommand(msg, sock, evt) {
             switch(cmd[1]) {
                 case 'on' : {
                     onoff = true;
+                    sock.message(`목표스푼을 활성화합니다.`);
                 } break;
 
                 case 'off' : {
                     onoff = false;
-                } 
+                    sock.message(`목표스푼을 비활성화합니다.`);
+                } break;
                 default : {
                     if (isNaN(cmd[1])) { sock.message(`숫자만 입력해주세요`); return;}
-                    target_price = cmd[1];
+                    user_data.target_price = parseInt(cmd[1]);
+                    save_gaol_data(dj_tag);
                     flag = true;
-                    sock.message(`${user_data.title} ( ${price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} / ${target_price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} )`); 
+                    sock.message(`${user_data.title}\\n( ${price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} / ${user_data.target_price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} )`); 
                 }
             }
 
@@ -119,10 +119,10 @@ function _getSpoonCommand(msg, sock, evt) {
             }
 			if (isNaN(cmd[1])) { sock.message(`숫자만 입력해주세요`); return;}
             price = parseInt(cmd[1]);
-            sock.message(`${user_data.title} ( ${price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} / ${target_price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} )`); 
+            sock.message(`${user_data.title}\\n( ${price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} / ${user_data.target_price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} )`); 
         } break;
         case '!스푼' : {
-            sock.message(`${user_data.title} ( ${price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} / ${target_price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} )`); 
+            sock.message(`${user_data.title}\\n( ${price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} / ${user_data.target_price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} )`); 
         } break; 
         case '!채팅수' : {
             if (!evt.data.user.is_dj && tag != 'hati_manager') {
@@ -142,10 +142,10 @@ function _getSpoonCommand(msg, sock, evt) {
         case '!달성복권' : {
             if (!evt.data.user.is_dj && tag != 'hati_manager' && tag != 'ria_tree') return;
             if (isNaN(cmd[1])) { sock.message(`숫자만 입력해주세요`); return;}
-            ticket = parseInt(cmd[1]);
+            user_data.ticket = parseInt(cmd[1]);
+            save_gaol_data(dj_tag);
             sock.message(`달성복권이 ${cmd[1]}개로 변경되었습니다.`);
         } break;
-        
     }
 } // _getSpoonCommand() end
 
@@ -166,7 +166,8 @@ function load_goal_data(file_name) {
                     title : "♥️••𝙎𝙥𝙤𝙤𝙣 달성까지",
                     tag : file_name,
                     point : 2000,
-                    ticket : 2
+                    ticket : 2,
+                    target_price : 1000
                 }
             ]
         }
