@@ -15,6 +15,7 @@ let flag = true;
 let point = 2000;
 let goal_count = 1;
 let ticket = 2;
+let onoff = false;
 
 exports.live_message = async (evt, sock) => {
     const message = evt.update_component.message.value;
@@ -26,7 +27,10 @@ exports.live_message = async (evt, sock) => {
     var user_data = jsonData.goal_info.find(x => x.tag === dj_tag);
     
     if (user_data == undefined) return;
-    
+
+    ticket = user_data.ticket;
+    point = user_date.point;
+
     if (chat_cnt === chatting_count) {
         sock.message(`${user_data.title} ( ${price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} / ${target_price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} )`); 
         chat_cnt = -1;
@@ -39,14 +43,27 @@ exports.live_present = (evt, sock) => {
     price += parseInt(num);
     
     if (price >= target_price && flag) {
+
         let tag = evt.data.author.tag;
         if (goal_count % 2 != 0) {
             sock.message(`!상점 ${tag} ${point}`);
+            goal_count++;
         } else {
-            sock.message(`!복권지급 ${tag} ${ticket}`)
+            sock.message(`!복권지급 ${tag} ${ticket}`);
+            goal_count = 1;
         }
-        goal_count++;
+        
         flag = false;
+
+        if (onoff == true) {
+            let count = 1;
+            for (var i = 1; price.toString().length; i++) {
+                count = count * 10;
+            }
+            
+            target_price = parseInt((Math.floor(price / count) + 1)) * parseInt(count);
+        }
+
     }
 
 
@@ -66,32 +83,35 @@ function _getSpoonCommand(msg, sock, evt) {
                 return;
             }
 
-            if (cmd[1] != undefined) {
-                user_data.title = cmd[1];
-            }
-            if (cmd[2] != undefined) {
-                user_data.title = cmd[1] + ' ' + cmd[2];
-            } 
-            if (cmd[3] != undefined) {
-                user_data.title = cmd[1] + ' ' + cmd[2] + ' ' + cmd[3];
-            } 
-            if (cmd[4] != undefined) { 
-                user_data.title = cmd[1] + ' ' + cmd[2] + ' ' + cmd[3] + ' ' + cmd[4];
-            }
-            if (cmd[5] != undefined) { 
-                user_data.title = cmd[1] + ' ' + cmd[2] + ' ' + cmd[3] + ' ' + cmd[4] + ' ' + cmd[5];
-            }
+            cmd.forEach(ward => {
+                user_data.title = ward + ' ';
+            });
+
             save_gaol_data(dj_tag);
-           	sock.message(`${user_data.title} ( ${price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} / ${target_price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} )`); 
+           	sock.message(`${user_data.title}\\n ( ${price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} / ${target_price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} )`); 
         } break;
         case '!목표스푼' : {
             if (!evt.data.user.is_dj && !sock._live.manager_ids.includes(evt.data.user.id) && tag != 'hati_manager') {
                 return;
             }
-			if (isNaN(cmd[1])) { sock.message(`숫자만 입력해주세요`); return;}
-            target_price = cmd[1];
-            flag = true;
-            sock.message(`${user_data.title} ( ${price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} / ${target_price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} )`); 
+            switch(cmd[1]) {
+                case 'on' : {
+                    onoff = true;
+                } break;
+
+                case 'off' : {
+                    onoff = false;
+                } 
+                default : {
+                    if (isNaN(cmd[1])) { sock.message(`숫자만 입력해주세요`); return;}
+                    target_price = cmd[1];
+                    flag = true;
+                    sock.message(`${user_data.title} ( ${price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} / ${target_price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} )`); 
+                }
+            }
+
+            
+			
         } break;
         case '!현재스푼' : {
             if (!evt.data.user.is_dj && !sock._live.manager_ids.includes(evt.data.user.id) && tag != 'hati_manager' ) {
@@ -145,7 +165,8 @@ function load_goal_data(file_name) {
                 {
                     title : "♥️••𝙎𝙥𝙤𝙤𝙣 달성까지",
                     tag : file_name,
-                    point : 2000
+                    point : 2000,
+                    ticket : 2
                 }
             ]
         }
